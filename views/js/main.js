@@ -484,6 +484,7 @@ console.log("Time to generate pizzas on load: " + timeToGenerate[0].duration + "
 // Used by updatePositions() to decide when to log the average time per frame
 var frame = 0;
 var phase = 0;
+var ticking = false;
 
 // Logs the average amount of time per 10 frames needed to move the sliding background pizzas on scroll.
 function logAverageFrame(times) {   // times is the array of User Timing measurements from updatePositions()
@@ -500,7 +501,13 @@ function logAverageFrame(times) {   // times is the array of User Timing measure
 
 // Moves the sliding background pizzas based on scroll position
 function updatePositions() {
-  requestAnimationFrame(updatePositions);
+
+  //tfw reset the tick so we can capture the next on scroll
+  ticking = false;
+  
+  //call raF to handle the visual updates at the most convenient time for the browser
+  //requestAnimationFrame(updatePositions); no longer needed
+
   frame++;
   window.performance.mark("mark_start_frame");
 
@@ -525,8 +532,20 @@ requestAnimationFrame(updatePositions);
 window.addEventListener('scroll', onScroll, false);
 
 function onScroll(){
+  //tfw decouple the scroll from the updatePositions functions
   phase = Math.sin((document.body.scrollTop / 1250) + (i % 5));
   console.log("document body scrollTop " + document.body.scrollTop / 1250 +  " phase "  + phase);
+  //tfw onScroll initiates the raF
+  requestTick();
+
+}
+
+function requestTick() {
+
+    if (!ticking){
+      requestAnimationFrame(updatePositions);
+    }
+    ticking = true;
 }
 
 // Generates the sliding pizzas when the page loads.
